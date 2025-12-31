@@ -1,0 +1,34 @@
+services:
+  # SolidStart Blog App
+  blog:
+    build:
+      context: .
+      args:
+        - VITE_MICROCMS_SERVICE_DOMAIN=${VITE_MICROCMS_SERVICE_DOMAIN}
+        - VITE_MICROCMS_API_KEY=${VITE_MICROCMS_API_KEY}
+    container_name: solid-blog
+    restart: always
+    env_file: .env # 明示的に.envファイルを指定して警告を回避
+    environment:
+      - VITE_MICROCMS_SERVICE_DOMAIN=${VITE_MICROCMS_SERVICE_DOMAIN}
+      - VITE_MICROCMS_API_KEY=${VITE_MICROCMS_API_KEY}
+      - PORT=3000
+    networks:
+      - internal_net
+
+  # Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: blog-tunnel
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - internal_net
+    depends_on:
+      - blog
+
+networks:
+  internal_net:
+    driver: bridge
